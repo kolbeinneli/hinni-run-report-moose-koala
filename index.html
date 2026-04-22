@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rakel's Running Analysis</title>
+<style>
+  :root {
+    --bg: #fbf8f3;
+    --panel: #ffffff;
+    --text: #2a2a2a;
+    --muted: #7a7366;
+    --grid: #ece6da;
+    --coral: #f17d6a;
+    --teal: #2ea79d;
+    --mustard: #e4a74b;
+    --sage: #8bb174;
+    --lavender: #a78bbf;
+    --sky: #6fb3d2;
+    --blush: #e8b4bc;
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Inter, Helvetica, Arial, sans-serif;
+    font-size: 17px;
+    line-height: 1.55;
+    padding: 0 20px;
+  }
+  main {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 32px 0 80px;
+  }
+  .eyebrow {
+    color: var(--muted);
+    font-size: 13px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+  h1 {
+    font-size: clamp(34px, 7vw, 48px);
+    line-height: 1.08;
+    margin: 0 0 8px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+  }
+  h1 .athlete { color: var(--coral); }
+  .subhead {
+    color: var(--muted);
+    font-size: 16px;
+    margin: 0 0 32px;
+  }
+
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1px;
+    background: var(--grid);
+    border-radius: 14px;
+    overflow: hidden;
+    margin: 28px 0 36px;
+    border: 1px solid var(--grid);
+  }
+  .stat {
+    background: var(--panel);
+    padding: 18px 16px;
+  }
+  .stat .num {
+    font-size: 28px;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+    line-height: 1.05;
+  }
+  .stat .lbl {
+    color: var(--muted);
+    font-size: 12px;
+    margin-top: 4px;
+  }
+  .stat.coral .num { color: var(--coral); }
+  .stat.teal  .num { color: var(--teal); }
+  .stat.sage  .num { color: var(--sage); }
+  .stat.lavender .num { color: var(--lavender); }
+
+  .tldr {
+    background: var(--panel);
+    border-left: 4px solid var(--coral);
+    padding: 18px 20px;
+    border-radius: 6px;
+    margin: 16px 0 44px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+  }
+  .tldr strong { color: var(--coral); }
+
+  h2 {
+    font-size: 26px;
+    margin: 56px 0 8px;
+    letter-spacing: -0.01em;
+    font-weight: 800;
+  }
+  h2 .marker {
+    display: inline-block;
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    margin-right: 10px;
+    vertical-align: middle;
+    transform: translateY(-2px);
+  }
+  h2.great .marker         { background: var(--sage); }
+  h2.over .marker          { background: var(--coral); }
+  h2.under .marker         { background: var(--mustard); }
+  h2.tips .marker          { background: var(--teal); }
+  h2.predict .marker       { background: var(--lavender); }
+
+  h2 + p.lede { color: var(--muted); margin-top: 0; margin-bottom: 20px; }
+
+  .point {
+    margin: 22px 0;
+  }
+  .point .kicker {
+    font-size: 18px;
+    font-weight: 700;
+    display: block;
+    margin-bottom: 4px;
+  }
+  .point .kicker.sage     { color: var(--sage); }
+  .point .kicker.coral    { color: var(--coral); }
+  .point .kicker.mustard  { color: var(--mustard); }
+  .point .kicker.teal     { color: var(--teal); }
+  .point p { margin: 4px 0 0; }
+
+  ol.tips {
+    counter-reset: tip;
+    list-style: none;
+    padding: 0;
+    margin: 16px 0 0;
+  }
+  ol.tips li {
+    counter-increment: tip;
+    position: relative;
+    padding: 18px 18px 18px 64px;
+    background: var(--panel);
+    border-radius: 12px;
+    margin-bottom: 12px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+  }
+  ol.tips li::before {
+    content: counter(tip);
+    position: absolute;
+    left: 18px;
+    top: 16px;
+    width: 34px; height: 34px;
+    border-radius: 50%;
+    background: var(--teal);
+    color: white;
+    font-weight: 800;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  ol.tips .kicker {
+    display: block;
+    font-weight: 700;
+    margin-bottom: 2px;
+    color: var(--text);
+  }
+
+  figure {
+    margin: 28px 0;
+  }
+  figure img {
+    width: 100%;
+    height: auto;
+    border-radius: 10px;
+    background: var(--panel);
+    display: block;
+  }
+  figcaption {
+    color: var(--muted);
+    font-size: 13px;
+    margin-top: 8px;
+    text-align: center;
+  }
+
+  .predict-callout {
+    background: linear-gradient(135deg, #fff 0%, #faf0e8 100%);
+    border: 1px solid var(--grid);
+    border-radius: 14px;
+    padding: 24px;
+    margin: 20px 0;
+  }
+  .predict-callout .headline {
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--lavender);
+    margin-bottom: 8px;
+  }
+
+  code {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    background: #f1ece3;
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-size: 0.9em;
+  }
+
+  footer {
+    color: var(--muted);
+    font-size: 13px;
+    text-align: center;
+    margin-top: 64px;
+    padding-top: 24px;
+    border-top: 1px solid var(--grid);
+  }
+
+  @media (min-width: 560px) {
+    .stats { grid-template-columns: repeat(4, 1fr); }
+    .stat .num { font-size: 26px; }
+  }
+</style>
+</head>
+<body>
+<main>
+
+  <div class="eyebrow">Training analysis · Jan 2025 – Apr 2026</div>
+  <h1>Rakel's running <span class="athlete">decoded</span></h1>
+  <p class="subhead">209 runs. 1,912 km. A big, clear story in the data — and three obvious levers for the next chapter.</p>
+
+  <section class="stats">
+    <div class="stat coral">
+      <div class="num">1,912 km</div>
+      <div class="lbl">since Jan 2025</div>
+    </div>
+    <div class="stat teal">
+      <div class="num">−50 s/km</div>
+      <div class="lbl">pace @ 150–160 bpm</div>
+    </div>
+    <div class="stat sage">
+      <div class="num">+11.8%</div>
+      <div class="lbl">efficiency factor</div>
+    </div>
+    <div class="stat lavender">
+      <div class="num">44%</div>
+      <div class="lbl">of days she ran</div>
+    </div>
+  </section>
+
+  <div class="tldr">
+    <strong>TL;DR</strong> — She's built impressive consistency and aerobic fitness since Jan 2025. The single biggest unlock from here is <em>slowing her easy runs down</em>. She's training almost everything at "moderate-hard", which is the well-known plateau zone for recreational runners. A more polarized distribution plus higher cadence would likely produce a step-change in race performance without adding any volume.
+  </div>
+
+  <figure>
+    <img src="charts/mobile/01_volume_timeline.png" alt="Weekly running volume 2020–2026">
+    <figcaption>Five and a half years of running, two pregnancies, a rock-solid block since early 2025.</figcaption>
+  </figure>
+
+  <h2 class="great"><span class="marker"></span>What's genuinely great</h2>
+  <p class="lede">Three things she should keep doing exactly as she's doing.</p>
+
+  <div class="point">
+    <span class="kicker sage">Consistency is elite-level.</span>
+    <p>209 runs over 68 weeks = 3.1 runs/week, virtually no gaps. She ran 44% of all calendar days since January. Volume sits comfortably around 28 km/week with some natural build/recovery wobble — more consistent than a lot of club athletes.</p>
+  </div>
+
+  <div class="point">
+    <span class="kicker sage">The aerobic engine is real.</span>
+    <p>Pace at 150–160 bpm dropped 50 s/km (6:29 → 5:39). EF +11.8% at the same HR. Speed gains come from longer stride (+5.3%), not cadence — that's the signature of <em>aerobic development</em>, not just "trying harder".</p>
+  </div>
+
+  <div class="point">
+    <span class="kicker sage">Long-run base is solid.</span>
+    <p>22 runs ≥90 min since Jan 2025 (one every 10 runs), longest 130 min / 21 km. Plenty of endurance substrate for half-marathon and beyond.</p>
+  </div>
+
+  <figure>
+    <img src="charts/mobile/08_volume_efficiency.png" alt="Weekly volume and pace at 150–160 bpm">
+    <figcaption>Volume built the engine. Pace followed. The fitness gain is real.</figcaption>
+  </figure>
+
+  <h2 class="over"><span class="marker"></span>Where she's over-invested</h2>
+  <p class="lede">Three patterns costing her adaptation without buying much fitness.</p>
+
+  <div class="point">
+    <span class="kicker coral">The "moderate-hard" black hole.</span>
+    <p>Biggest single finding: <strong>64% of her running time is ≥160 bpm</strong> (threshold and above). For a recreational athlete aiming to build fitness, polarized (80/20) theory says only ~15% should be hard. She's 4× over. Only 10% is truly easy.</p>
+  </div>
+
+  <div class="point">
+    <span class="kicker coral">Running at one pace.</span>
+    <p>Easy-HR median pace (6:08/km) is only 12% slower than her best 5 k pace (5:28/km). A healthy ratio is 20–35% slower. Translation: her "easy" runs are almost race pace. They cost a lot of recovery and return little aerobic benefit.</p>
+  </div>
+
+  <div class="point">
+    <span class="kicker coral">Hard days stacked on hard days.</span>
+    <p>32 of her 133 threshold/hard runs (24%) came with less than 36 hours of recovery before them. Compromises adaptation and slowly accumulates fatigue.</p>
+  </div>
+
+  <figure>
+    <img src="charts/mobile/09_training_profile.png" alt="Training profile: intensity and cadence">
+    <figcaption>The picture of the problem: she's running where she shouldn't, and cadence hasn't moved.</figcaption>
+  </figure>
+
+  <h2 class="under"><span class="marker"></span>Where she's under-invested</h2>
+  <p class="lede">Three zones with the highest return-on-effort for the next 12 weeks.</p>
+
+  <div class="point">
+    <span class="kicker mustard">Truly easy running.</span>
+    <p>Only 10% of time below 145 bpm. Should be 60–80%. This is the zone that builds mitochondria, capillary density, and fat oxidation — the slow-but-decisive adaptations.</p>
+  </div>
+
+  <div class="point">
+    <span class="kicker mustard">Cadence.</span>
+    <p>Median <strong>157 SPM</strong>, zero runs ≥170. Optimal range is 170–180. Low cadence implies overstriding (impact forces on hips/knees) and limits pace efficiency. Her speed gains came entirely from stride length — cadence hasn't budged in 10 months.</p>
+  </div>
+
+  <div class="point">
+    <span class="kicker mustard">True high-intensity intervals.</span>
+    <p>~20% of time is Z5 (≥175 bpm), but those samples are mostly drift from threshold runs, not sharp short intervals. Structured intervals (400s, 1 km reps at 5 k pace with full recovery) would create fitness ceiling-raising stimulus without more total load.</p>
+  </div>
+
+  <h2 class="tips"><span class="marker"></span>Top 5 training tips</h2>
+  <p class="lede">In priority order. Doing any one moves the needle; doing three is transformative.</p>
+
+  <ol class="tips">
+    <li>
+      <span class="kicker">Enforce easy pace with HR, not feel.</span>
+      On ~3 of 4 runs, cap HR at 145 bpm — walk if needed. Easy pace target: <strong>6:45–7:15/km</strong>. It will feel insultingly slow for 2–3 weeks, then she'll start finishing long runs without drift and wake up fresh the next day.
+    </li>
+    <li>
+      <span class="kicker">One quality session per week, with real recovery.</span>
+      Pick one: (a) intervals (8 × 400 m at 5 k pace), or (b) tempo (20 min continuous at ~5:45/km). Then <strong>48 hours minimum</strong> before the next hard effort.
+    </li>
+    <li>
+      <span class="kicker">Cadence drill, 5 minutes every easy run.</span>
+      Use a 170-bpm metronome or playlist. Small, fast, light steps at any pace. Over 6–8 weeks her median should drift to 165+ — that translates directly to injury-resistance and pace economy.
+    </li>
+    <li>
+      <span class="kicker">Long run goes longer and easier.</span>
+      Her 90-min runs are probably averaging 160+ bpm (threshold long runs). Push one run per week to <strong>2 h at &lt;150 bpm</strong>. Slower pace, more benefit.
+    </li>
+    <li>
+      <span class="kicker">Insert a down-week every 4th week.</span>
+      Drop to ~60% volume (≈17 km). Her volume chart shows natural wobble but no systematic deload — planned dips produce bigger super-compensation peaks.
+    </li>
+  </ol>
+
+  <h2 class="predict"><span class="marker"></span>Predicted effect</h2>
+  <div class="predict-callout">
+    <div class="headline">−20 to −30 s/km over the next 12 weeks</div>
+    <p style="margin:0;">If she shifts to roughly <strong>70% easy / 10% moderate / 20% hard</strong>, holds ~28 km/week, and adds cadence work, pace @ 150–160 bpm should drop another 20–30 s/km — steeper than her current trajectory, because she'll actually be recovering from the hard work.</p>
+  </div>
+
+  <footer>
+    Built from 357 Strava activities and 1.2 M stream samples.<br>
+    Charts in <code>rakel/charts/</code> (desktop) and <code>rakel/charts/mobile/</code>.
+  </footer>
+
+</main>
+</body>
+</html>
